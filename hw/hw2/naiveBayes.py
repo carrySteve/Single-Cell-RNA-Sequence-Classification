@@ -1,7 +1,8 @@
+import math
 import sys
+
 import numpy as np
 from scipy import stats
-import math
 
 __TRAIN_FILE = 'adult.data'
 __TEST_FILE = 'adult.test'
@@ -103,12 +104,11 @@ def test_samples(alpha, prior, test_line_num):
         # iterate over target frames
         for line_idx, line in enumerate(train_file.readlines()):
             if line_idx < test_line_num:
-                values = line[:-1].split(
-                    ', ')  # omitting incomplete data lines
+                values = line[:-1].split(', ')
+                # omitting incomplete data lines
                 if '?' in values:
                     continue
                 else:
-                    # age, workclass, fnlwgt, education, education_num, marital_status, occupation, relationship, race, sex, capital_gain, capital_loss, hours_per_week, native_country, label = values
                     for label in __LABEL:
                         sample_prob = prior[label]
                         for att_idx, att_value in enumerate(values[:-1]):
