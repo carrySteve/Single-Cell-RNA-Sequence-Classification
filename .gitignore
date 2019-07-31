@@ -1,5 +1,3 @@
-*.h5
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -128,4 +126,10 @@ dmypy.json
 *.data
 *.test
 
-*.jpg
+*.h5
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
