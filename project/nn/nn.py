@@ -16,6 +16,7 @@ from models import ClassifierFC
 
 def train(classifier, dataloaders_dict, criterion_dict, optimizer, cfg):
     since = time.time()
+    best_info = {'epoch': 1, 'acc': 0.0}
 
     for epoch in range(cfg.num_epochs):
         print('Epoch {}/{}'.format(epoch + 1, cfg.num_epochs))
@@ -54,7 +55,7 @@ def train(classifier, dataloaders_dict, criterion_dict, optimizer, cfg):
                     _, cell_label = torch.max(label_logits, 1)
 
                     total_loss += loss.data
-                    total_acc += torch.sum(cell_label == label.data).double()
+                    total_acc += torch.sum(cell_label == label.data).item()
                     # print(torch.sum(cell_label == label.data))
                     # print(cell_label, label)
                     total_len += feature.shape[0]
@@ -62,22 +63,26 @@ def train(classifier, dataloaders_dict, criterion_dict, optimizer, cfg):
                     # sys.exit(0)
 
                 avg_loss = total_loss / total_len
-                if phase == 'test':
-                    print(phase, total_acc, total_len)
                 avg_acc = total_acc / total_len
 
-                print('|{}|{}|'.format(
-                    time.strftime('%m-%d %H:%M:%S', time.localtime(since)),
-                    time.strftime('%m-%d %H:%M:%S',
-                                  time.localtime(time.time()))))
-                print('{} {} Loss: {} Acc: {} \n'.format(
-                    epoch + 1, phase, avg_loss, avg_acc))
+                # print('|{}|{}|'.format(
+                #     time.strftime('%m-%d %H:%M:%S', time.localtime(since)),
+                #     time.strftime('%m-%d %H:%M:%S',
+                #                   time.localtime(time.time()))))
+                # print('{} {} Loss: {} Acc: {} \n'.format(
+                #     epoch + 1, phase, avg_loss, avg_acc))
+
+            if best_info['acc'] < avg_acc and phase == 'test':
+                best_info['epoch'] = epoch + 1
+                best_info['acc'] = avg_acc
 
             print('|{}|{}|'.format(
                 time.strftime('%m-%d %H:%M:%S', time.localtime(since)),
                 time.strftime('%m-%d %H:%M:%S', time.localtime(time.time()))))
-            print('{} {} Loss: {} Acc: {} \n'.format(epoch + 1, phase,
-                                                     avg_loss, avg_acc))
+            print('{} {} Loss: {} Acc: {}'.format(epoch + 1, phase, avg_loss,
+                                                  avg_acc))
+            print('Best Acc: {} At epoch: {}'.format(best_info['acc'],
+                                                     best_info['epoch']))
 
             with open(cfg.log_path, 'a') as f:
                 f.write('|{}|{}|'.format(
@@ -86,6 +91,9 @@ def train(classifier, dataloaders_dict, criterion_dict, optimizer, cfg):
                                   time.localtime(time.time()))))
                 f.write('{} {} Loss: {} Acc: {} \n'.format(
                     epoch + 1, phase, avg_loss, avg_acc))
+                if phase == 'test':
+                    f.write('Best Acc: {} At epoch: {} \n'.format(
+                        best_info['acc'], best_info['epoch']))
 
             if (epoch + 1) % cfg.store_gap == 0 and phase == 'test':
                 state = {
@@ -101,7 +109,7 @@ def train(classifier, dataloaders_dict, criterion_dict, optimizer, cfg):
 
 def init(cfg):
     cfg.init_config()
-    # show_config(cfg)
+    show_config(cfg)
 
     print('creating classifier')
     classifier = ClassifierFC(cfg).to(cfg.device)

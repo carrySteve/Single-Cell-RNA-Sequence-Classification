@@ -10,15 +10,15 @@ class Config(object):
         self.num_workers = 4
         self.shuffle = True
 
-        self.read_pca = True
+        self.read_pca = False
         self.use_pca = False
         self.n_components = 83
-        self.feature_dim = 83
-        assert self.n_components == self.feature_dim
+        self.feature_dim = 20499
+        # assert self.n_components == self.feature_dim
         # 20499(ALL) 83(VAR 99) 11(VAR 95)
-        # self.embed_dim = 128
+        self.embed_dim = 2048
         # 256
-        self.hidden_dim = 512
+        # self.hidden_dim = 512
         self.label_num = 46
 
         self.learning_rate = 1e-5

@@ -2,6 +2,9 @@ import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
 
 ALL_TRAIN_DATA_PATH = '../train_data.h5'
 ALL_TEST_DATA_PATH = '../test_data.h5'
