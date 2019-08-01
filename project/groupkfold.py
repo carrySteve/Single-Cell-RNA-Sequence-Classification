@@ -12,8 +12,8 @@ print(pca_data.shape)
 print(labels.shape)
 print(access.shape)
 
-cv=KFold(3).split(pca_data)
-#cv=GroupKFold(n_folds).split(pca_data,labels,access)
+#cv=KFold(3).split(pca_data)
+cv=GroupKFold(n_folds).split(pca_data,labels,access)
 #cv=LeaveOneGroupOut().split(pca_data,labels,access)
 for train_index , test_index in cv:
     print('Train labels {}'.format(len(np.unique(labels[train_index]))))
