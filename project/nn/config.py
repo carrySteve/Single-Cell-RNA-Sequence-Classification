@@ -40,7 +40,7 @@ class Config(object):
             time_str = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
             self.exp_name = '[%s]<%s>' % (self.exp_note, time_str)
 
-        self.result_path = 'result/%s' % self.exp_name
+        self.result_path = 'result/%s/' % self.exp_name
         self.log_path = 'result/%s/log.txt' % self.exp_name
 
         if not os.path.exists(self.result_path):
