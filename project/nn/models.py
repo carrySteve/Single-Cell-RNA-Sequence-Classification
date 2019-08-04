@@ -1,6 +1,8 @@
 import numpy as np
 
+import torch
 import torch.nn as nn
+import torch.nn.functional as F 
 
 
 class ClassifierFC(nn.Module):
@@ -55,3 +57,62 @@ class AutoEncoder(nn.Module):
         feature = self.encoder(feature)
         feature = self.decoder(feature)
         return feature
+
+
+class RelationNetwork(nn.Module):
+    def __init__(self, cfg):
+        super(RelationNetwork, self).__init__()
+
+        self.cfg = cfg
+
+        self.embed_fc = nn.Sequential(
+            nn.Linear(cfg.feature_dim, cfg.embed_dim),
+            nn.Tanh(),
+            nn.Dropout(p=cfg.dropout_ratio))
+
+        self.graph_dim = cfg.graph_dim
+        self.relation_dim = cfg.relation_dim
+
+        self.theta = nn.Linear(self.graph_dim, self.relation_dim)
+        self.phi = nn.Linear(self.graph_dim, self.relation_dim)
+
+        self.mixed_dropout = nn.Dropout(p=cfg.dropout_ratio)
+
+        # self.classifier_fc = ClassifierFC(cfg)
+        self.classifier_fc = nn.Linear(cfg.embed_dim, cfg.label_num)
+
+    def forward(self, feature):
+        # [B, feature_dim]
+
+        graph_feature = self.embed_fc(feature).unsqueeze(dim=-1)
+        # graph_feature = feature.unsqueeze(dim=-1)
+        # [B, feature_dim] -> [B, embed_dim] -> [B, embed_dim, 1]
+
+        # [B, graph_dim, 1]
+        theta_feature = self.theta(graph_feature)
+        phi_feature = self.phi(graph_feature)
+
+        similarity_relation_graph = torch.matmul(theta_feature,
+                                                 phi_feature.permute(0, 2, 1))
+        # [B, graph_dim, 1] [B, 1, graph_dim] -> [B, graph_dim, graph_dim]
+
+        similarity_relation_graph = similarity_relation_graph / np.sqrt(
+            self.graph_dim)
+
+        relation_graph = torch.softmax(similarity_relation_graph, dim=2)
+        # [B, graph_dim, graph_dim] -> [B, graph_dim, graph_dim(1)]
+
+        relation_feature = F.relu(torch.matmul(relation_graph,
+                                        graph_feature).squeeze(dim=-1))
+        # [B, graph_dim, graph_dim(1)] [B, graph_dim, 1] -> [B, graph_dim, 1]
+
+
+        mixed_feature = relation_feature + graph_feature.squeeze(dim=-1)
+
+        mixed_feature = self.mixed_dropout(mixed_feature)
+
+        label_logits = self.classifier_fc(mixed_feature)
+
+        return label_logits
+
+        
