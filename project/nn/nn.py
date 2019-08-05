@@ -1,3 +1,5 @@
+import sys
+import pickle
 import time
 
 import torch
@@ -9,12 +11,14 @@ from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader
 
 from config import *
-from utils import *
 from gene_loader import GeneDataset
-from models import ClassifierFC
+from models import RelationNetwork
+from utils import *
+
+__OLD_CLASSIFIER_PATH = '/root/steve/result/Graph No Embed read_pca-False use_pca-False n_components-20499 feature_dim-20499 embed_dim-2048/classifier epoch-9 acc-0.4098073555166375.pth'
 
 
-def train(classifier, dataloaders_dict, criterion_dict, optimizer, cfg):
+def train(classifier, dataloaders_dict, criterion_dict, optimizer, init_graph, cfg):
     since = time.time()
     best_info = {'epoch': 1, 'acc': 0.0}
 
@@ -43,7 +47,7 @@ def train(classifier, dataloaders_dict, criterion_dict, optimizer, cfg):
                     feature = feature.to(cfg.device)
                     label = torch.tensor(label).to(cfg.device)
 
-                    label_logits = classifier(feature)
+                    label_logits = classifier(feature, init_graph)
 
                     loss = criterion_dict(label_logits, label)
 
@@ -112,8 +116,23 @@ def init(cfg):
     show_config(cfg)
 
     print('creating classifier')
-    classifier = ClassifierFC(cfg).to(cfg.device)
+    classifier = RelationNetwork(cfg).to(cfg.device)
     print_log(cfg.log_path, classifier)
+
+    classifier.load_state_dict(torch.load(__OLD_CLASSIFIER_PATH)['state_dict'])
+
+    init_graph = torch.load('init graph.pth').to(cfg.device)
+    init_graph.requires_grad = False
+
+    # classifier_dict = classifier.state_dict()
+
+    # pretrained_dict = {
+    #     k: v
+    #     for k, v in torch.load(__OLD_CLASSIFIER_PATH).items()
+    #     if k in classifier_dict
+    # }
+    # print('loading inception')
+    # classifier_dict.update(pretrained_dict)
 
     print('creating dataloader')
     dataloaders_dict = {
@@ -132,4 +151,4 @@ def init(cfg):
                            weight_decay=cfg.weight_decay)
 
     print('start training')
-    train(classifier, dataloaders_dict, criterion_dict, optimizer, cfg)
+    train(classifier, dataloaders_dict, criterion_dict, optimizer, init_graph, cfg)
