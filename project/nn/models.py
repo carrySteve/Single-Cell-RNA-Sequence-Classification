@@ -28,6 +28,24 @@ class ClassifierFC(nn.Module):
         return label_logits
 
 
+class ClassifierSelect(nn.Module):
+    def __init__(self, cfg):
+        super(ClassifierSelect, self).__init__()
+        self.classifier = nn.Sequential(
+            nn.Linear(cfg.feature_dim, cfg.embed_dim), nn.Tanh(),
+            nn.Dropout(p=cfg.dropout_ratio),
+            nn.Linear(cfg.embed_dim, cfg.label_num))
+
+        # for m in self.modules():
+        #     if isinstance(m, nn.Linear):
+        #         nn.init.kaiming_normal_(m.weight)
+
+    def forward(self, feature):
+        label_logits = self.classifier(feature)
+
+        return label_logits
+
+
 class AutoEncoder(nn.Module):
     def __init__(self, cfg):
         super(AutoEncoder, self).__init__()
@@ -109,7 +127,8 @@ class RelationNetwork(nn.Module):
         # [B, graph_dim, graph_dim] -> [B, graph_dim, graph_dim(1)]
 
         relation_feature = F.relu(
-            torch.matmul(init_graph + relation_graph, graph_feature).squeeze(dim=-1))
+            torch.matmul(init_graph + relation_graph,
+                         graph_feature).squeeze(dim=-1))
         # [B, graph_dim, graph_dim(1)] [B, graph_dim, 1] -> [B, graph_dim, 1]
 
         mixed_feature = relation_feature + graph_feature.squeeze(dim=-1)

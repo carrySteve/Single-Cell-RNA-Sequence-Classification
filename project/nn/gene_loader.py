@@ -6,8 +6,8 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
 
-ALL_TRAIN_DATA_PATH = '../train_data.h5'
-ALL_TEST_DATA_PATH = '../test_data.h5'
+ALL_TRAIN_DATA_PATH = 'dataset/train_data.h5'
+ALL_TEST_DATA_PATH = 'dataset/test_data.h5'
 
 VAR = {83: 99, 11: 95}
 
@@ -48,6 +48,8 @@ class GeneDataset(Dataset):
         global PCA_DATA_PATH, VAR, ALL_TRAIN_DATA_PATH, ALL_TEST_DATA_PATH, LABEL_TO_ID
         self.read_pca = cfg.read_pca
         self.use_pca = cfg.use_pca
+        self.use_selct = cfg.use_selct
+        self.reduced_dim = cfg.reduced_dim
 
         self.label_to_id = LABEL_TO_ID
 
@@ -61,6 +63,23 @@ class GeneDataset(Dataset):
             self.rpkm_scaled = np.load(data_path)
             print('reading label')
             self.label = np.load(label_path)
+        elif self.use_selct:
+            path = cfg.train_path if phase == 'train' else cfg.test_path
+            print('Start Reading Data')
+            store = pd.HDFStore(path)
+            self.rpkm_scaled = store['rpkm']
+            self.label = store['labels']
+            store.close()
+        elif self.reduced_dim:
+            data_path = 'dataset/relation/{}_relation.npy'.format(phase)
+            label_path = 'dataset/relation/{}_label.npy'.format(phase)
+
+            print('reading data')
+            self.rpkm_scaled = np.load(data_path)
+            print('reading label')
+            self.label = np.load(label_path)
+
+
         else:
             path = ALL_TRAIN_DATA_PATH if phase == 'train' else ALL_TEST_DATA_PATH
 
@@ -82,7 +101,7 @@ class GeneDataset(Dataset):
 
     def __getitem__(self, index):
 
-        if self.read_pca:
+        if self.read_pca or self.reduced_dim:
             rpkm = torch.tensor(self.rpkm_scaled[index]).float()
             label = self.label_to_id[self.label[index]]
         else:

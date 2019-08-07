@@ -119,9 +119,9 @@ def init(cfg):
     classifier = RelationNetwork(cfg).to(cfg.device)
     print_log(cfg.log_path, classifier)
 
-    classifier.load_state_dict(torch.load(__OLD_CLASSIFIER_PATH)['state_dict'])
+    # classifier.load_state_dict(torch.load(__OLD_CLASSIFIER_PATH)['state_dict'])
 
-    init_graph = torch.load('init graph.pth').to(cfg.device)
+    init_graph = torch.load(cfg.init_graph_path).to(cfg.device)
     init_graph.requires_grad = False
 
     # classifier_dict = classifier.state_dict()

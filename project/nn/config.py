@@ -17,6 +17,9 @@ class Config(object):
         # assert self.n_components == self.feature_dim
         # 20499(ALL) 83(VAR 99) 11(VAR 95)
         self.embed_dim = 2048
+        self.init_graph_path = ''
+        self.use_selct = False
+        self.reduced_dim = False
         # 256
         # self.hidden_dim = 512
         self.label_num = 46
