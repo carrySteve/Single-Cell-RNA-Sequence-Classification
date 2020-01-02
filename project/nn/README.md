@@ -1,5 +1,7 @@
 # Single cell RNA Sequence Classification with Neural Networks
 
+Please refer to PDF file if the equation cannot be rendered right.
+
 We built neural networks for classification. First of all, we train a fully connected classifier (FC) as a baseline for neural network models. But we find that results vary even of the same architecture. We reason such phenomenon to random weights initialization. Hence, to get better initialization weights, we train an AutoEncoder and use its encoder weights to initialize the FC weights. However, the result shows that AutoEncoder weights do not help much.
 
 Also, with professor's help, we notice that the interactions between genes can assists classification, so building a gene interaction graph may help. However, the interaction graph is non-Euclidean as only $1817$ genes among total $20499$ genes interact. Therefore, a proper method is needed to learn the relationship between others.
